@@ -1,28 +1,3 @@
-
-let PROJECT_ID = "jylv2qqp";
-let DATASET = "production";
-let QUERY = encodeURIComponent('*[_type == "user"]');
-const API_TOKEN = 'skAhl0vQv23LlXtU3x0E6Ele9ED9z7sdWWCDBjf1HwTHMxi0WLDhQzyMoTnVcR6UhFQKJxa0yBli3DlyWQDQRZzci5oU9SA98fdBYv1fNrlrrzkxXTkwpwLV6P6xKhBSRfEYEVfbUPs7sZ2sc6ulsa4PrNZnNBIqEXqFOb3ULj9o7e6m5s15'; 
-
-async function pushDataToSanity(data) {
-  const apiUrl = `https://${PROJECT_ID}.api.sanity.io/v2021-10-21/data/mutate/${DATASET}`;
-
-  try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_TOKEN}`,
-      },
-      body: JSON.stringify({ mutations: [{ create: data }] }),
-    });
-
-    const result = await response.json();
-    console.log('Data pushed to Sanity:', result);
-  } catch (error) {
-    console.error('Error pushing data to Sanity:', error);
-  }
-}
 function navigateToOTP() {
   const selectedCountryCode =
     document.getElementById("countryCodeSelect").value;
@@ -42,23 +17,7 @@ function navigateToFullName() {
   window.location.href = `fullname.html${queryParams}`;
 }
 
-function navigateToChat() {
-  const firstName = document.querySelector(".first-name").value;
-  const lastName = document.querySelector(".last-name").value;
-  const phoneNo = getURLParameter("phoneNo");
-  const userObj = {
-    _type: 'user',
-    firstName:firstName ,
-    lastName: lastName,
-    phoneNumber: phoneNo,
-  };
 
-  if (firstName.length > 3 & lastName.length>3) {
-    console.log(pushDataToSanity(userObj) == 'Data pushed to Sanity')
-    // window.location.href = `fullname.html${queryParams}`;
-
-  }
-}
 
 function getURLParameter(name) {
   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -83,3 +42,4 @@ function displayPhoneNumber() {
 }
 
 document.addEventListener("DOMContentLoaded", displayPhoneNumber);
+

@@ -9,14 +9,14 @@ body {
   font-family: "inter", sans-serif;
   margin: 0;
   padding: 0;
-
 }
 input,
 select {
   border: none;
   background-color: transparent;
 }
-input:focus-visible, select:focus-visible{
+input:focus-visible,
+select:focus-visible {
   outline: none;
 }
 .country-code {
@@ -33,6 +33,14 @@ select {
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   display: none;
+}
+form{
+  width: 100%;
+}
+a.link-text{
+text-decoration: none;
+color: black;
+
 }
 .container {
   display: flex;
@@ -62,7 +70,7 @@ h1 {
   font-size: 14px;
   margin-bottom: 30px;
   font-weight: 400;
-  color: #88888A;
+  color: #88888a;
 }
 
 .input-container {
@@ -102,19 +110,9 @@ h1 {
 
 .user-list {
   list-style: none;
-  padding: 0;
+  padding-left: 0rem;
   margin: 0;
 }
-
-.user-list li {
-  cursor: pointer;
-  padding: 10px;
-}
-
-.user-list li:hover {
-  background-color: #ddd;
-}
-
 .chat-content {
   flex: 3;
   display: flex;
@@ -164,6 +162,74 @@ h1 {
   padding: 10px;
   margin-left: 10px;
 }
-.full-container{
+.full-container {
   display: flex;
+  height: 100vh;
+}
+.users-list {
+  width: 25%;
+  padding: 1rem 0;
+  background-color: #f2f2f7;
+}
+#chat-window {
+  width: 75%;
+}
+ul.user-list li {
+  display: flex;
+  cursor: pointer;
+  padding: 4px;
+}
+ul.user-list li p , .chat-person p{
+font-size: 14px;
+font-weight: 600;
+}
+ul.user-list li img {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+}
+.chat-person {
+  height: 80px;
+  background-color: #f2f2f7;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding-left: 2rem;
+}
+.chat-person img {
+  width: 48px;
+  height: 48px;
+  margin-right: 1rem;
+  border-radius: 50%;
+}
+.chat-section {
+  /* background-color: aqua; */
+  width: 100%;
+  height: calc(100vh - 80px);
+}
+#chat-messages {
+  height: 90%;
+}
+.chat-input-box {
+  width: 95%;
+  margin-inline: auto;
+}
+.chat-input-box input {
+  background-color: #ebedef;
+  padding: 12px 20px;
+  width: 80%;
+  border-radius: 50px;
+}
+.chat-input-box button {
+  background-color: #ebedef;
+  border-radius: 50%;
+  padding: 12px 6px;
+  border: none;
+  background-color: #007bff;
+}
+.active{
+  background-color: #0071EE;
+
+}.active p{
+  color: #ffffff; 
 }
