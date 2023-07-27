@@ -8,14 +8,9 @@ const firebaseConfig = {
   appId: "1:910549463067:web:da2a4ad2e3e4c9639c08be",
   measurementId: "G-9SF86WJ68J",
 };
-
 var { initializeApp } = require("firebase/app");
-const ipc = require("electron").ipcMain;
 require("firebase/auth");
-require("firebase/firestore");
 var admin = require("firebase-admin");
-var { getDatabase, onValue } = require("firebase/database");
-
 const serviceAccount = require("./assets/json/electron-59067-firebase-adminsdk-5e07a-d8340b74cb.json");
 
 const { app, BrowserWindow, ipcMain } = require("electron");
@@ -24,14 +19,173 @@ const {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } = require("firebase/auth");
+const {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+} = require("firebase/firestore");
 require("firebase/auth");
-require("firebase/firestore");
+
+const appFirebase = initializeApp(firebaseConfig);
+
+const auth = getAuth();
+const db = getFirestore(appFirebase);
+const usersRef = collection(db, "users");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://electron-59067-default-rtdb.firebaseio.com",
+});
+
+
+
+
+
+
+
+
+
+const ref = admin.database().ref("chats/user1_user2/messageId2/message");
+
+// ref.on(
+//   "value",
+//   (snapshot) => {
+//     const message = snapshot.val();
+//     console.log("Message:", message);
+//   },
+//   (errorObject) => {
+//     console.log("The read failed: " + errorObject.name);
+//   }
+// );
+
+const dbRef = admin.database().ref("chats/MureedSultan_MubeenOlkh");
+
+async function addNewMessage() {
+  try {
+    const newMessageRef = dbRef.push(); // Generate a unique key for the new message
+    await newMessageRef.set({
+      sender: "Mubben Olkh",
+      message: "Great Very Great",
+      timestamp: Date.now(),
+    });
+    console.log("New message added to the database.");
+  } catch (error) {
+    console.error("Error adding new message to the database: ", error);
+  }
+}
+
+// Call the addNewMessage function to add a new message
+// addNewMessage();
+
+
+async function displayChatMessages() {
+  try {
+    const snapshot = await dbRef.once("value");
+    const messages = snapshot.val();
+
+    if (messages) {
+      console.log("Chat Messages:");
+      Object.keys(messages).forEach((messageId) => {
+        const { sender, message, timestamp } = messages[messageId];
+        const date = new Date(timestamp).toLocaleString();
+        mainWindow.webContents.send("updateChat",date, sender, message)
+
+        console.log(`${date} | ${sender}: ${message}`);
+      });
+    } else {
+      console.log("No messages found.");
+    }
+  } catch (error) {
+    console.error("Error retrieving chat messages: ", error);
+  }
+}
+
+// Call the function to display chat messages
+displayChatMessages();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+getDocs(usersRef)
+  .then((querySnapshot) => {
+    if (querySnapshot.empty) {
+      console.log("No documents found in the 'users' collection.");
+    } else {
+      querySnapshot.forEach((doc) => {
+        console.log(doc.data().phoneNumber)
+        mainWindow.webContents.send(
+          "updateUsers",
+          doc.data().firstName + " " + doc.data().lastName
+        );
+      });
+    }
+  })
+  .catch((error) => {
+    console.error("Error fetching documents from 'users' collection:", error);
+  });
+
+function handleAuthUser(event, email, password) {
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      console.log("userloged in ");
+    })
+    .catch((error) => {
+      console.log(error.code);
+    });
+}
+function cleanPhoneNumber(phoneNumber) {
+  const phoneNumberParts = phoneNumber.split(" ");
+  const remainingNumber = phoneNumberParts[1];
+  const cleanedNumber = remainingNumber.replace(/-/g, "");
+  return cleanedNumber;
+}
+const handleRegUser = (event, firstName, lastName, phoneNo) => {
+  let usrReg = {
+    firstName: firstName,
+    lastName: lastName,
+    phoneNumber: phoneNo,
+  };
+  createUserWithEmailAndPassword(
+    auth,
+    firstName + "@email.com",
+    cleanPhoneNumber(phoneNo)
+  )
+    .then((userCredential) => {
+      console.log("User registration successful:", userCredential.user.email);
+      mainWindow.loadFile(`./pages/chat.html`);
+    })
+    .catch((error) => {
+      console.error("User registration error:", error.code);
+    });
+  addDoc(usersRef, usrReg)
+    .then((docRef) => {
+      console.log("Document written with ID:", docRef.id);
+    })
+    .catch((error) => {
+      console.error("Error adding document to 'users' collection:", error);
+    });
+};
 
 function createWindow() {
-  let icounter = 1;
   mainWindow = new BrowserWindow({
     width: 800,
-    height: 600,
+    height: 800,
     webPreferences: {
       nodeIntegration: true,
       preload: __dirname + "/preload.js",
@@ -39,10 +193,8 @@ function createWindow() {
   });
 
   mainWindow.loadFile("./pages/chat.html");
-  setInterval(() => {
-    icounter ++;
-    mainWindow.webContents.send("something happend",icounter)
-  }, 1500);
+  ipcMain.on("auth-user-firebase", handleAuthUser);
+  ipcMain.on("reg-user-firebase", handleRegUser);
 }
 
 app.whenReady().then(() => {
@@ -61,110 +213,16 @@ app.on("window-all-closed", () => {
   }
 });
 
-function loginWithEmailAndPassword(email, password) {
-  signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      mainWindow.loadFile(`./pages/chat.html`);
-      console.log("User logged in:", user.email);
-    })
-    .catch((error) => {
-      console.error("Login error:", error);
-    });
-}
 
-const userRegister = (userEmail, userPass) => {
-  createUserWithEmailAndPassword(auth, userEmail, userPass)
-    .then((userCredential) => {
-      console.log("User registration successful:", userCredential.user.email);
-      mainWindow.loadFile(`./pages/chat.html`);
-    })
-    .catch((error) => {
-      console.error("User registration error:", error.code);
-    });
-};
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://electron-59067-default-rtdb.firebaseio.com",
-});
-
-const appFirebase = initializeApp(firebaseConfig);
-const auth = getAuth(appFirebase);
-const database = getDatabase();
-
-const ref = admin.database().ref("user1/chat/Message");
-
-ref.on('value', (snapshot) => {
-  const message = snapshot.val();
-  console.log('Message:', message);
-}, (errorObject) => {
-  console.log('The read failed: ' + errorObject.name);
-});
-
-// let list = document.getElementById("userList");
-async function fetchUserEmails() {
-  try {
-    const userList = await admin.auth().listUsers();
-    const userEmails = userList.users.map((user) => user.email);
-    // list.innerHTML += userEmails;
-    console.log("user", userEmails);
-    return userEmails;
-  } catch (error) {
-    console.error("Error fetching user emails:", error.message);
-    return [];
-  }
-}
-const chatRef = admin.database().ref("chats");
-
-const newChatData = {
-  chatId: "chat123",
-  messages: [
-    {
-      sender: "user1",
-      message: "Hello!",
-      timestamp: Date.now(),
-    },
-    {
-      sender: "user2",
-      message: "Hi there!",
-      timestamp: Date.now(),
-    },
-  ],
-};
-
-// chatRef.child(newChatData.chatId).set(newChatData)
-//   .then(() => {
-//     console.log('New chat section added to the database.');
-//   })
-//   .catch((error) => {
-//     console.error('Error adding chat section:', error);
-//   });
-
-function sendUserEmailsToRenderer(userEmails) {
-  mainWindow.webContents.send("user-emails", userEmails);
-}
-// fetchUserEmails()
-//   .then((userEmails) => {
-//     console.log("Registered user emails:", userEmails);
-//     sendUserEmailsToRenderer(userEmails);
-//   })
-//   .catch((error) => {
-//     console.error("Error fetching user emails:", error.message);
-//   });
-
-function cleanPhoneNumber(phoneNumber) {
-  const phoneNumberParts = phoneNumber.split(" ");
-  const remainingNumber = phoneNumberParts[1];
-  const cleanedNumber = remainingNumber.replace(/-/g, "");
-  return cleanedNumber;
-}
 ipcMain.on("login", (event, email, password) => {
   loginWithEmailAndPassword(email + "@email.com", password);
   event.reply("login-response", "Login request received.");
 });
 
-ipcMain.on("save-user-data", (event, userObj) => {
+ipcMain.on("reg-user-data", (event, userObj) => {
   const cleanedPhoneNumber = cleanPhoneNumber(userObj.phoneNumber);
-  userRegister(userObj.firstName + userObj.lastName+ "@email.com", cleanedPhoneNumber);
+  userRegister(
+    userObj.firstName + userObj.lastName + "@email.com",
+    cleanedPhoneNumber
+  );
 });

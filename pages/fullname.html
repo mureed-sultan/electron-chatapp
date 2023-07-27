@@ -28,29 +28,8 @@
       </button>
     </div>
     <script src="../script/navigation.js"></script>
-    <script>
-      function saveUserDataAndNavigate() {
-        const firstName = document.querySelector(".first-name").value;
-        const lastName = document.querySelector(".last-name").value;
-        const phoneNo = getURLParameter("phoneNo");
-        const warningText = document.getElementById("warning-text");
-
-        // Create a user object with the required data
-        const userObj = {
-          _type: "user",
-          firstName: firstName,
-          lastName: lastName,
-          phoneNumber: phoneNo,
-        };
-        if (!userObj.firstName || !userObj.lastName) {
-          warningText.style.display = "block";
-          setTimeout(() => {
-            warningText.style.display = "none";
-          }, 5000);
-        } else {
-          window.api.send("save-user-data", userObj);
-        }
-      }
+    <script src="../renderer.js">
+  
     </script>
   </body>
 </html>

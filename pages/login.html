@@ -10,9 +10,9 @@
   <div class="container">
     <img src="../assets/images/signup-logo.jpeg" alt="">
     <p class="subheading">What's your Phone Number?</p>
-    <form onsubmit="login(event)">
+    <form onsubmit="login()">
       <div class="input-container">
-        <input type="email" class="input-padding" placeholder="Email e.g. firstname@email.com" id="email" required><br>
+        <input type="text" class="input-padding" placeholder="Email e.g. firstname@email.com" id="email" required><br>
       </div>
       <div class="input-container">
         <input type="password" class="input-padding" id="password" placeholder="Password" required><br>
@@ -23,13 +23,9 @@
 
   </div>
 
-  <script>
-    function login(event) {
-      event.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      window.api.send('login', email, password);
-    }
+  <script src="../renderer.js">
+
+
   </script>
 </body>
 </html>

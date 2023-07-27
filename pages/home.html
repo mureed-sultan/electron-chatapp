@@ -15,8 +15,6 @@
       <form onsubmit="loginWithPhoneNumber(event)">
         <div class="input-container">
           <select class="country-code" id="countryCodeSelect">
-            <!-- Add your country codes here dynamically -->
-            <!-- For example, <option value="+1">+1</option> for the United States -->
           </select>
           <input
             type="number"
@@ -34,20 +32,20 @@
     </div>
     <script src="../script/script.js"></script>
     <script src="../script/navigation.js"></script>
-    <script>
-      const warningText = document.getElementById("warning-text");
-      function loginWithPhoneNumber(event) {
-        event.preventDefault();
-        const phoneNumber = document.getElementById("phoneNumber").value;
-        if (phoneNumber.length <= 5) {
-          warningText.style.display = "block";
-          setTimeout(() => {
-            warningText.style.display = "none";
-          }, 5000);
-        } else {
-          window.api.send("sendphone", phoneNumber);
-        }
-      }
-    </script>
+
+<script src="../renderer.js">  </script>
+<script>
+    const warningText = document.getElementById("warning-text");
+  function loginWithPhoneNumber(event) {
+    event.preventDefault();
+    const phoneNumber = document.getElementById("phoneNumber").value;
+    if (phoneNumber.length <= 5) {
+      warningText.style.display = "block";
+      setTimeout(() => {
+        warningText.style.display = "none";
+      }, 5000);
+    }
+  }
+</script>
   </body>
 </html>
