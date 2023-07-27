@@ -1,34 +1,53 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Sign Up</title>
-  <link rel="stylesheet" href="../assets/styles/main.css">
-</head>
-<body>
-  <div class="container">
-    <img src="../assets/images/signup-logo.jpeg" alt="">
-    <p class="subheading">What's your Phone Number?</p>
-    <form onsubmit="loginWithPhoneNumber(event)">
-      <div class="input-container">
-        <select class="country-code" id="countryCodeSelect">
-          <!-- Add your country codes here dynamically -->
-          <!-- For example, <option value="+1">+1</option> for the United States -->
-        </select>
-        <input type="number" class="phone-number" id="phoneNumber" placeholder="Phone number">
-      </div>
-      <div id="recaptcha-container"></div>
-      <button type="submit" class="next-button" onclick="navigateToOTP()">Next</button>
-    </form>
-    <a class="link-text" href="../pages/login.html">Already Account</a>
-  </div>
-  <script src="../script/script.js"></script>
-  <script src="../script/navigation.js"></script>
-  <script>
-    function loginWithPhoneNumber(event) {
-      event.preventDefault();
-      const phoneNumber = document.getElementById('phoneNumber').value;
-      window.api.send('sendphone', phoneNumber);
-    }
-  </script>
-</body>
+  <head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="../assets/styles/main.css" />
+  </head>
+  <body>
+    <p style="display: none" id="warning-text">
+      Please Enter Your Phone Number
+    </p>
+
+    <div class="container">
+      <img src="../assets/images/signup-logo.jpeg" alt="" />
+      <p class="subheading">What's your Phone Number?</p>
+      <form onsubmit="loginWithPhoneNumber(event)">
+        <div class="input-container">
+          <select class="country-code" id="countryCodeSelect">
+            <!-- Add your country codes here dynamically -->
+            <!-- For example, <option value="+1">+1</option> for the United States -->
+          </select>
+          <input
+            type="number"
+            class="phone-number"
+            id="phoneNumber"
+            placeholder="Phone number"
+          />
+        </div>
+        <div id="recaptcha-container"></div>
+        <button type="submit" class="next-button" onclick="navigateToOTP()">
+          Next
+        </button>
+      </form>
+      <a class="link-text" href="../pages/login.html">Already Account</a>
+    </div>
+    <script src="../script/script.js"></script>
+    <script src="../script/navigation.js"></script>
+    <script>
+      const warningText = document.getElementById("warning-text");
+      function loginWithPhoneNumber(event) {
+        event.preventDefault();
+        const phoneNumber = document.getElementById("phoneNumber").value;
+        if (phoneNumber.length <= 5) {
+          warningText.style.display = "block";
+          setTimeout(() => {
+            warningText.style.display = "none";
+          }, 5000);
+        } else {
+          window.api.send("sendphone", phoneNumber);
+        }
+      }
+    </script>
+  </body>
 </html>

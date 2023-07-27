@@ -7,8 +7,6 @@ function navigateToOTP() {
   )}&phoneNumber=${encodeURIComponent(phoneNumber)}`;
   if (phoneNumber.length>=5) {
     window.location.href = `../pages/otp.html${queryParams}`;
-  }else{
-    alert("Please Enter real Phone")
   }
 }
 function navigateToFullName() {

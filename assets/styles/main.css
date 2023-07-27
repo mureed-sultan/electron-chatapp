@@ -42,6 +42,10 @@ text-decoration: none;
 color: black;
 
 }
+#warning-text{
+  text-align: center;
+  color: red;
+}
 .container {
   display: flex;
   justify-content: center;

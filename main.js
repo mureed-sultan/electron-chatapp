@@ -9,8 +9,16 @@ const firebaseConfig = {
   measurementId: "G-9SF86WJ68J",
 };
 
+var { initializeApp } = require("firebase/app");
+const ipc = require("electron").ipcMain;
+require("firebase/auth");
+require("firebase/firestore");
+var admin = require("firebase-admin");
+var { getDatabase, onValue } = require("firebase/database");
+
+const serviceAccount = require("./assets/json/electron-59067-firebase-adminsdk-5e07a-d8340b74cb.json");
+
 const { app, BrowserWindow, ipcMain } = require("electron");
-const { initializeApp } = require("firebase/app");
 const {
   getAuth,
   signInWithEmailAndPassword,
@@ -19,12 +27,8 @@ const {
 require("firebase/auth");
 require("firebase/firestore");
 
-// require('./script/firebase.js')
-const appFirebase = initializeApp(firebaseConfig);
-const auth = getAuth(appFirebase);
-
-
 function createWindow() {
+  let icounter = 1;
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -35,6 +39,10 @@ function createWindow() {
   });
 
   mainWindow.loadFile("./pages/chat.html");
+  setInterval(() => {
+    icounter ++;
+    mainWindow.webContents.send("something happend",icounter)
+  }, 1500);
 }
 
 app.whenReady().then(() => {
@@ -75,11 +83,88 @@ const userRegister = (userEmail, userPass) => {
       console.error("User registration error:", error.code);
     });
 };
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://electron-59067-default-rtdb.firebaseio.com",
+});
+
+const appFirebase = initializeApp(firebaseConfig);
+const auth = getAuth(appFirebase);
+const database = getDatabase();
+
+const ref = admin.database().ref("user1/chat/Message");
+
+ref.on('value', (snapshot) => {
+  const message = snapshot.val();
+  console.log('Message:', message);
+}, (errorObject) => {
+  console.log('The read failed: ' + errorObject.name);
+});
+
+// let list = document.getElementById("userList");
+async function fetchUserEmails() {
+  try {
+    const userList = await admin.auth().listUsers();
+    const userEmails = userList.users.map((user) => user.email);
+    // list.innerHTML += userEmails;
+    console.log("user", userEmails);
+    return userEmails;
+  } catch (error) {
+    console.error("Error fetching user emails:", error.message);
+    return [];
+  }
+}
+const chatRef = admin.database().ref("chats");
+
+const newChatData = {
+  chatId: "chat123",
+  messages: [
+    {
+      sender: "user1",
+      message: "Hello!",
+      timestamp: Date.now(),
+    },
+    {
+      sender: "user2",
+      message: "Hi there!",
+      timestamp: Date.now(),
+    },
+  ],
+};
+
+// chatRef.child(newChatData.chatId).set(newChatData)
+//   .then(() => {
+//     console.log('New chat section added to the database.');
+//   })
+//   .catch((error) => {
+//     console.error('Error adding chat section:', error);
+//   });
+
+function sendUserEmailsToRenderer(userEmails) {
+  mainWindow.webContents.send("user-emails", userEmails);
+}
+// fetchUserEmails()
+//   .then((userEmails) => {
+//     console.log("Registered user emails:", userEmails);
+//     sendUserEmailsToRenderer(userEmails);
+//   })
+//   .catch((error) => {
+//     console.error("Error fetching user emails:", error.message);
+//   });
+
+function cleanPhoneNumber(phoneNumber) {
+  const phoneNumberParts = phoneNumber.split(" ");
+  const remainingNumber = phoneNumberParts[1];
+  const cleanedNumber = remainingNumber.replace(/-/g, "");
+  return cleanedNumber;
+}
 ipcMain.on("login", (event, email, password) => {
-  loginWithEmailAndPassword(email, password);
+  loginWithEmailAndPassword(email + "@email.com", password);
   event.reply("login-response", "Login request received.");
 });
 
 ipcMain.on("save-user-data", (event, userObj) => {
-  userRegister(userObj.firstName + "@email.com", userObj.lastName);
+  const cleanedPhoneNumber = cleanPhoneNumber(userObj.phoneNumber);
+  userRegister(userObj.firstName + userObj.lastName+ "@email.com", cleanedPhoneNumber);
 });

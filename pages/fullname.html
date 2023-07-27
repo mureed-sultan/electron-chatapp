@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="../assets/styles/main.css" />
   </head>
   <body>
+    <p style="display: none" id="warning-text">Please Enter Your Full Name</p>
     <div class="container">
       <img src="../assets/images/signup-logo.jpeg" alt="" />
       <p class="subheading">What's your full name?</p>
@@ -32,6 +33,7 @@
         const firstName = document.querySelector(".first-name").value;
         const lastName = document.querySelector(".last-name").value;
         const phoneNo = getURLParameter("phoneNo");
+        const warningText = document.getElementById("warning-text");
 
         // Create a user object with the required data
         const userObj = {
@@ -40,8 +42,14 @@
           lastName: lastName,
           phoneNumber: phoneNo,
         };
-        // Send the user object to the main process using IPC
-        window.api.send("save-user-data", userObj);
+        if (!userObj.firstName || !userObj.lastName) {
+          warningText.style.display = "block";
+          setTimeout(() => {
+            warningText.style.display = "none";
+          }, 5000);
+        } else {
+          window.api.send("save-user-data", userObj);
+        }
       }
     </script>
   </body>
