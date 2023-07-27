@@ -218,6 +218,29 @@ ul.user-list li img {
 #chat-messages {
   height: 90%;
 }
+.chat-message li{
+list-style: none;
+font-size: 16px;
+font-weight: 400;
+display: flex;
+}
+.chat-message li.right-message{
+/* background-color: aqua; */
+justify-content: flex-end;
+}
+.chat-message li.left-message span{
+  width: 50%;
+  display: flex;
+  justify-content: start;
+  padding: 10px 44px;
+}.chat-message li.right-message span{
+  width: 50%;
+  display: flex;
+  justify-content: end;
+  padding: 10px 44px;
+}
+
+
 .chat-input-box {
   width: 95%;
   margin-inline: auto;

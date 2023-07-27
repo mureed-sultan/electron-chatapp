@@ -36,36 +36,44 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://electron-59067-default-rtdb.firebaseio.com",
 });
+const ref = admin.database().ref("chats/MureedSultan_MubeenOlkh");
+const chatMessages = [];
 
+const getChat = ()=>{
 
-
-
-
-
-
-
-
-const ref = admin.database().ref("chats/user1_user2/messageId2/message");
-
-// ref.on(
-//   "value",
-//   (snapshot) => {
-//     const message = snapshot.val();
-//     console.log("Message:", message);
-//   },
-//   (errorObject) => {
-//     console.log("The read failed: " + errorObject.name);
-//   }
-// );
+  ref.on(
+    "value",
+    (snapshot) => {
+      const messages = snapshot.val();
+      if (messages) {
+        Object.keys(messages).forEach((messageId) => {
+          const { sender, message, timestamp } = messages[messageId];
+          const date = new Date(timestamp).toLocaleString();
+          const isDuplicate = chatMessages.some((msg) => msg.id === messageId);
+          if (!isDuplicate) {
+            chatMessages.push({ id: messageId, date, sender, message });
+            mainWindow.webContents.send("updateChat", date, sender, message);
+          }
+        });
+      } else {
+        console.log("No messages found.");
+    }
+  },
+  (errorObject) => {
+    console.log("The read failed: " + errorObject.name);
+  }
+  );
+}
+getChat()
 
 const dbRef = admin.database().ref("chats/MureedSultan_MubeenOlkh");
 
-async function addNewMessage() {
+async function uploadChat(event,message) {
   try {
     const newMessageRef = dbRef.push(); // Generate a unique key for the new message
     await newMessageRef.set({
-      sender: "Mubben Olkh",
-      message: "Great Very Great",
+      sender: "Mureed Sultan",
+      message: message,
       timestamp: Date.now(),
     });
     console.log("New message added to the database.");
@@ -73,53 +81,6 @@ async function addNewMessage() {
     console.error("Error adding new message to the database: ", error);
   }
 }
-
-// Call the addNewMessage function to add a new message
-// addNewMessage();
-
-
-async function displayChatMessages() {
-  try {
-    const snapshot = await dbRef.once("value");
-    const messages = snapshot.val();
-
-    if (messages) {
-      console.log("Chat Messages:");
-      Object.keys(messages).forEach((messageId) => {
-        const { sender, message, timestamp } = messages[messageId];
-        const date = new Date(timestamp).toLocaleString();
-        mainWindow.webContents.send("updateChat",date, sender, message)
-
-        console.log(`${date} | ${sender}: ${message}`);
-      });
-    } else {
-      console.log("No messages found.");
-    }
-  } catch (error) {
-    console.error("Error retrieving chat messages: ", error);
-  }
-}
-
-// Call the function to display chat messages
-displayChatMessages();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 getDocs(usersRef)
   .then((querySnapshot) => {
@@ -143,7 +104,12 @@ function handleAuthUser(event, email, password) {
   signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       const user = userCredential.user;
-      console.log("userloged in ");
+      console.log("userloged in ", user.email);
+      mainWindow.loadFile(`./pages/chat.html`);
+      setTimeout(() => {
+        getChat()
+      }, 2500);
+
     })
     .catch((error) => {
       console.log(error.code);
@@ -160,15 +126,17 @@ const handleRegUser = (event, firstName, lastName, phoneNo) => {
     firstName: firstName,
     lastName: lastName,
     phoneNumber: phoneNo,
+    emailId:firstName.toLowerCase()+"@email.com"
   };
   createUserWithEmailAndPassword(
     auth,
-    firstName + "@email.com",
+    firstName.toLowerCase()+"@email.com",
     cleanPhoneNumber(phoneNo)
   )
     .then((userCredential) => {
       console.log("User registration successful:", userCredential.user.email);
       mainWindow.loadFile(`./pages/chat.html`);
+      ipcMain.on("uploadChat", uploadChat);
     })
     .catch((error) => {
       console.error("User registration error:", error.code);
@@ -185,15 +153,16 @@ const handleRegUser = (event, firstName, lastName, phoneNo) => {
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
-    height: 800,
+    height: 784,
     webPreferences: {
       nodeIntegration: true,
       preload: __dirname + "/preload.js",
     },
   });
 
-  mainWindow.loadFile("./pages/chat.html");
+  mainWindow.loadFile("./pages/home.html");
   ipcMain.on("auth-user-firebase", handleAuthUser);
+  ipcMain.on("uploadChat", uploadChat);
   ipcMain.on("reg-user-firebase", handleRegUser);
 }
 
@@ -211,18 +180,4 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
-});
-
-
-ipcMain.on("login", (event, email, password) => {
-  loginWithEmailAndPassword(email + "@email.com", password);
-  event.reply("login-response", "Login request received.");
-});
-
-ipcMain.on("reg-user-data", (event, userObj) => {
-  const cleanedPhoneNumber = cleanPhoneNumber(userObj.phoneNumber);
-  userRegister(
-    userObj.firstName + userObj.lastName + "@email.com",
-    cleanedPhoneNumber
-  );
 });

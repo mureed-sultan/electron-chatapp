@@ -23,3 +23,7 @@ contextBridge.exposeInMainWorld('getChat', {
     });
   },
 });
+
+contextBridge.exposeInMainWorld('sendChat', {
+    firebaseChat: (chatText) => ipcRenderer.send('uploadChat', chatText)
+  })

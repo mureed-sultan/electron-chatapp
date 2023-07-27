@@ -1,5 +1,3 @@
-// get login cridential and send to main file
-
 function login() {
   event.preventDefault();
   const email = document.getElementById("email").value;
@@ -30,12 +28,10 @@ window.getChat.onGetChat((date, sender, message) => {
     console.log('sender', sender=="Mureed Sultan")
 console.log(date, sender, message)
 if (sender == 'Mureed Sultan') {
-    chatBox.innerHTML += '<li class="right-message">'+message+'</li>'
+    chatBox.innerHTML += '<li class="right-message"><span>'+message+'</span></li>'
 }else{
-    chatBox.innerHTML += '<li class="left-message">'+message+'</li>'
+    chatBox.innerHTML += '<li class="left-message"><span>'+message+'</span></li>'
 }
-
-//   userListSec.innerHTML += "<li><a class='users-render'>" + data + "</a></li>";
 });
 
 setTimeout(() => {
@@ -59,3 +55,9 @@ setTimeout(() => {
     });
   }, 1000);
   
+  function sendChatMessage() {
+      event.preventDefault();
+    const messageEnter = document.getElementById('message-input').value
+    console.log(messageEnter)
+    window.sendChat.firebaseChat(messageEnter);
+  }
