@@ -36,11 +36,12 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://electron-59067-default-rtdb.firebaseio.com",
 });
-const ref = admin.database().ref("chats/MureedSultan_MubeenOlkh");
-const chatMessages = [];
+let ref = admin.database().ref();
+let dbref = admin.database().ref();
 
-const getChat = ()=>{
+let chatMessages = [];
 
+const getChat = () => {
   ref.on(
     "value",
     (snapshot) => {
@@ -57,18 +58,29 @@ const getChat = ()=>{
         });
       } else {
         console.log("No messages found.");
+        chatMessages = [];
+        // Sending a message to the frontend to clear the chat display
+        mainWindow.webContents.send("clearChat",chatMessages);
+      }
+      
+    },
+    (errorObject) => {
+      console.log("The read failed: " + errorObject.name);
     }
-  },
-  (errorObject) => {
-    console.log("The read failed: " + errorObject.name);
-  }
   );
-}
-getChat()
+};
 
-const dbRef = admin.database().ref("chats/MureedSultan_MubeenOlkh");
 
-async function uploadChat(event,message) {
+const updateQuery = (e, query) => {
+  dbRef = admin.database().ref("chats/MureedSultan_" + query);
+  ref = admin.database().ref("chats/MureedSultan_" + query);
+  console.log(query)
+  getChat()
+};
+
+
+
+async function uploadChat(event, message) {
   try {
     const newMessageRef = dbRef.push(); // Generate a unique key for the new message
     await newMessageRef.set({
@@ -88,7 +100,7 @@ getDocs(usersRef)
       console.log("No documents found in the 'users' collection.");
     } else {
       querySnapshot.forEach((doc) => {
-        console.log(doc.data().phoneNumber)
+        console.log(doc.data().phoneNumber);
         mainWindow.webContents.send(
           "updateUsers",
           doc.data().firstName + " " + doc.data().lastName
@@ -107,9 +119,8 @@ function handleAuthUser(event, email, password) {
       console.log("userloged in ", user.email);
       mainWindow.loadFile(`./pages/chat.html`);
       setTimeout(() => {
-        getChat()
+        getChat();
       }, 2500);
-
     })
     .catch((error) => {
       console.log(error.code);
@@ -126,11 +137,11 @@ const handleRegUser = (event, firstName, lastName, phoneNo) => {
     firstName: firstName,
     lastName: lastName,
     phoneNumber: phoneNo,
-    emailId:firstName.toLowerCase()+"@email.com"
+    emailId: firstName.toLowerCase() + "@email.com",
   };
   createUserWithEmailAndPassword(
     auth,
-    firstName.toLowerCase()+"@email.com",
+    firstName.toLowerCase() + "@email.com",
     cleanPhoneNumber(phoneNo)
   )
     .then((userCredential) => {
@@ -160,9 +171,10 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile("./pages/home.html");
+  mainWindow.loadFile("./pages/chat.html");
   ipcMain.on("auth-user-firebase", handleAuthUser);
   ipcMain.on("uploadChat", uploadChat);
+  ipcMain.on("activeChatPerson", updateQuery);
   ipcMain.on("reg-user-firebase", handleRegUser);
 }
 

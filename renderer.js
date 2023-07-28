@@ -25,14 +25,17 @@ window.getUsers.onGetUser((data) => {
 });
 let chatBox = document.getElementById('chat-messages')
 window.getChat.onGetChat((date, sender, message) => {
-    console.log('sender', sender=="Mureed Sultan")
-console.log(date, sender, message)
 if (sender == 'Mureed Sultan') {
     chatBox.innerHTML += '<li class="right-message"><span>'+message+'</span></li>'
 }else{
     chatBox.innerHTML += '<li class="left-message"><span>'+message+'</span></li>'
 }
 });
+window.clearChatSec.onChangeChat((date, data) => {
+  console.log("This sec work")
+    chatBox.innerHTML = '<li class="left-message">No Chat Found</span></li>'
+});
+
 
 setTimeout(() => {
     const userItem = document.getElementsByClassName("users-render");
@@ -42,6 +45,9 @@ setTimeout(() => {
         if (e === clickedElement) {
           e.classList.add("active");
           chatPerson.innerHTML = e.innerHTML;
+          
+          window.sendChatPerson.firebaseChatPerson(chatPerson.innerHTML.replace(" ", ""));
+
         } else {
           e.classList.remove("active");
         }
