@@ -39,8 +39,9 @@ admin.initializeApp({
 let ref = admin.database().ref();
 let dbref = admin.database().ref();
 
-let chatMessages = [];
 
+let chatMessages = [];
+let userActive = ""
 const getChat = () => {
   ref.on(
     "value",
@@ -53,7 +54,7 @@ const getChat = () => {
           const isDuplicate = chatMessages.some((msg) => msg.id === messageId);
           if (!isDuplicate) {
             chatMessages.push({ id: messageId, date, sender, message });
-            mainWindow.webContents.send("updateChat", date, sender, message);
+            mainWindow.webContents.send("updateChat", date, sender, message, userActive);
           }
         });
       } else {
@@ -69,22 +70,64 @@ const getChat = () => {
     }
   );
 };
+const showUsers = ()=>{
+  console.log("User Triggers")
 
+  getDocs(usersRef)
+    .then((querySnapshot) => {
+      if (querySnapshot.empty) {
+        console.log("No documents found in the 'users' collection.");
+      } else {
+        querySnapshot.forEach((doc) => {
+          console.log(doc.data().phoneNumber);
+          mainWindow.webContents.send(
+            "updateUsers",
+            doc.data().firstName.toLowerCase()
+            // + " " + doc.data().lastName
+          );
+        });
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching documents from 'users' collection:", error);
+    });
+      
+  }
 
 const updateQuery = (e, query) => {
-  dbRef = admin.database().ref("chats/MureedSultan_" + query);
-  ref = admin.database().ref("chats/MureedSultan_" + query);
-  console.log(query)
-  getChat()
+  console.log("query", userActive, query);
+  const sortedEmails = [userActive, query].sort(); // Sort the emails alphabetically
+  const chatKey = `${sortedEmails[0]}_${sortedEmails[1]}`;
+  dbRef = admin.database().ref("chats/" + chatKey);
+  ref = admin.database().ref("chats/" + chatKey);
+  getChat();
 };
+
+function handleAuthUser(event, email, password) {
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      console.log("userloged in ", user.email);
+      userActive= user.email.split("@")[0]
+      mainWindow.loadFile(`./pages/chat.html`);
+      showUsers()
+    })
+    .catch((error) => {
+      console.log(error.code);
+    });
+}
+
+
+
+
 
 
 
 async function uploadChat(event, message) {
   try {
-    const newMessageRef = dbRef.push(); // Generate a unique key for the new message
+    const newMessageRef = dbRef.push();
     await newMessageRef.set({
-      sender: "Mureed Sultan",
+      sender:userActive ,
       message: message,
       timestamp: Date.now(),
     });
@@ -94,38 +137,7 @@ async function uploadChat(event, message) {
   }
 }
 
-getDocs(usersRef)
-  .then((querySnapshot) => {
-    if (querySnapshot.empty) {
-      console.log("No documents found in the 'users' collection.");
-    } else {
-      querySnapshot.forEach((doc) => {
-        console.log(doc.data().phoneNumber);
-        mainWindow.webContents.send(
-          "updateUsers",
-          doc.data().firstName + " " + doc.data().lastName
-        );
-      });
-    }
-  })
-  .catch((error) => {
-    console.error("Error fetching documents from 'users' collection:", error);
-  });
 
-function handleAuthUser(event, email, password) {
-  signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      console.log("userloged in ", user.email);
-      mainWindow.loadFile(`./pages/chat.html`);
-      setTimeout(() => {
-        getChat();
-      }, 2500);
-    })
-    .catch((error) => {
-      console.log(error.code);
-    });
-}
 function cleanPhoneNumber(phoneNumber) {
   const phoneNumberParts = phoneNumber.split(" ");
   const remainingNumber = phoneNumberParts[1];
@@ -147,7 +159,8 @@ const handleRegUser = (event, firstName, lastName, phoneNo) => {
     .then((userCredential) => {
       console.log("User registration successful:", userCredential.user.email);
       mainWindow.loadFile(`./pages/chat.html`);
-      ipcMain.on("uploadChat", uploadChat);
+      userActive= userCredential.user.email.split("@")[0]
+      showUsers()
     })
     .catch((error) => {
       console.error("User registration error:", error.code);
@@ -171,11 +184,14 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadFile("./pages/chat.html");
+  // mainWindow.loadFile("./pages/chat.html");
+  mainWindow.loadFile("./pages/home.html");
   ipcMain.on("auth-user-firebase", handleAuthUser);
   ipcMain.on("uploadChat", uploadChat);
   ipcMain.on("activeChatPerson", updateQuery);
   ipcMain.on("reg-user-firebase", handleRegUser);
+
+
 }
 
 app.whenReady().then(() => {
@@ -193,3 +209,4 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+

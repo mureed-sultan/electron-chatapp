@@ -217,12 +217,17 @@ ul.user-list li img {
 }
 #chat-messages {
   height: 90%;
+  display: flex;
+  flex-flow: column-reverse;
 }
 .chat-message li{
 list-style: none;
 font-size: 16px;
 font-weight: 400;
 display: flex;
+margin: 0.5rem 0;
+width: 95%;
+margin: auto;
 }
 .chat-message li.right-message{
 /* background-color: aqua; */
@@ -231,13 +236,19 @@ justify-content: flex-end;
 .chat-message li.left-message span{
   width: 50%;
   display: flex;
-  justify-content: start;
-  padding: 10px 44px;
+  padding: 10px 44px 10px 10px;
+  background: #E5E5EA;
+  border-radius: 10px;
+  color: black;
+  text-align: left;
 }.chat-message li.right-message span{
   width: 50%;
   display: flex;
-  justify-content: end;
-  padding: 10px 44px;
+  padding: 10px 44px 10px 10px;
+  background: #007bff;
+  border-radius: 10px;
+  color: white;
+  text-align: left;
 }
 
 
