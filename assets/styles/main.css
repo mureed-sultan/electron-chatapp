@@ -218,7 +218,10 @@ ul.user-list li img {
 #chat-messages {
   height: 90%;
   display: flex;
-  flex-flow: column-reverse;
+  justify-content: end;
+  flex-direction: column;
+  width: 95%;
+  margin-inline: auto;
 }
 .chat-message li{
 list-style: none;
@@ -227,7 +230,6 @@ font-weight: 400;
 display: flex;
 margin: 0.5rem 0;
 width: 95%;
-margin: auto;
 }
 .chat-message li.right-message{
 /* background-color: aqua; */

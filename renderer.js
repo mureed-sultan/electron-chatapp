@@ -51,7 +51,7 @@ setTimeout(() => {
       chatBox.innerHTML = '';
     })
   });
-}, 1000);
+}, 2000);
 window.getChat.onGetChat((date, sender, message, authUser) => {
   if (sender == authUser) {
     chatBox.innerHTML +=
